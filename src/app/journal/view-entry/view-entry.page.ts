@@ -27,14 +27,7 @@ export class ViewEntryPage extends Base implements OnInit {
   loading: HTMLIonLoadingElement;
   sanitizedContent: SafeHtml;
   entry$: Observable<Entry>;
-  edits$: Observable<
-    {
-      id: string | null;
-      timestamp: Date;
-      title: string;
-      sanitizedContent: SafeHtml;
-    }[]
-  >;
+  entry: Entry;
   edits: Observable<{
     id: string | null;
     timestamp: Date;
@@ -61,6 +54,7 @@ export class ViewEntryPage extends Base implements OnInit {
         next: () => {
           this.entry$ = this.entryService.getEntry(this.id).pipe(
             tap((entry) => {
+              this.entry = entry;
               // sanitize the content HTML
               this.sanitizedContent = this.domSanitizer.bypassSecurityTrustHtml(
                 entry.content
@@ -101,5 +95,9 @@ export class ViewEntryPage extends Base implements OnInit {
 
   update() {}
 
-  delete() {}
+  delete() {
+    this.entryService.deleteEntry(this.entry).then(() => {
+      this.modalController.dismiss(null, 'close');
+    });
+  }
 }

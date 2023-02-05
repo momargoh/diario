@@ -7,6 +7,7 @@ import {
   addDoc,
   collection,
   collectionData,
+  deleteDoc,
   doc,
   docData,
   getDoc,
@@ -46,6 +47,17 @@ export class EntryService {
     return docData(entryRef).pipe(
       map((json) => Entry.deserialize(json as EntrySerialized))
     );
+  }
+
+  deleteEntry(entry: Entry) {
+    const entryRef = doc(this.firestore, `entries/${entry.id}`);
+    return Promise.all([
+      ...entry.editIds?.map((id) =>
+        deleteDoc(doc(this.firestore, `edits/${id}`))
+      ),
+    ]).then(() => {
+      return deleteDoc(entryRef);
+    });
   }
 
   getEdit(id: string): Observable<Edit> {
