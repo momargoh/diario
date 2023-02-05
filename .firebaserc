@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "diario-7e493"
+  },
+  "targets": {
+    "diario-7e493": {
+      "hosting": {
+        "app": [
+          "diario-7e493"
+        ]
+      }
+    }
+  }
+}
