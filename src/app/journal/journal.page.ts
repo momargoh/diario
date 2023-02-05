@@ -9,19 +9,17 @@ import { WriteEntryPage } from './write-entry/write-entry.page';
   styleUrls: ['./journal.page.scss'],
 })
 export class JournalPage extends Base implements OnInit {
-  constructor(private modalCtrl: ModalController) {
+  constructor(private modalController: ModalController) {
     super();
   }
 
   ngOnInit() {}
 
   async createEntry() {
-    const modal = await this.modalCtrl.create({
+    const modal = await this.modalController.create({
       component: WriteEntryPage,
       backdropDismiss: false,
     });
     modal.present();
-
-    const { data, role } = await modal.onWillDismiss();
   }
 }

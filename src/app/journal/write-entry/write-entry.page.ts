@@ -69,24 +69,19 @@ export class WriteEntryPage extends Base implements OnInit {
     super();
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     if (this.mode === 'update') {
       // wrap in a loading spinner
-      this.addSubscriptions(
-        this.loadingService.create('Fetching entry').subscribe({
-          next: () => {
-            this.entryService
-              .getEntry(this.updateId)
-              .pipe(take(1))
-              .subscribe({
-                next: (entry) => {
-                  this.entryForm.patchValue(entry);
-                  this.loadingService.dismiss();
-                },
-              });
+      await this.loadingService.create('Fetching entry');
+      this.entryService
+        .getEntry(this.updateId)
+        .pipe(take(1))
+        .subscribe({
+          next: (entry) => {
+            this.entryForm.patchValue(entry);
+            this.loadingService.dismiss();
           },
-        })
-      );
+        });
     }
   }
 
@@ -125,31 +120,28 @@ export class WriteEntryPage extends Base implements OnInit {
     }
   }
 
-  private update() {
-    this.entryService
-      .updateEntry(this.updateId, this.entryForm.value as CreateEntryParams)
-      .subscribe({
-        next: () => {
-          this.modalController.dismiss(null, 'save');
-          this.toastController
-            .create({
-              message: `Your entry has been saved!`,
-              duration: 1500,
-              position: 'top',
-            })
-            .then((toast) => toast.present());
-        },
-        error: (e) => {
-          this.modalController.dismiss(null, 'fail');
-          this.toastController
-            .create({
-              message: `Error updating your entry, try again later!`,
-              duration: 1500,
-              position: 'top',
-            })
-            .then((toast) => toast.present());
-        },
+  private async update() {
+    try {
+      await this.entryService.updateEntry(
+        this.updateId,
+        this.entryForm.value as CreateEntryParams
+      );
+      this.modalController.dismiss(null, 'save');
+      const toast = await this.toastController.create({
+        message: `Your entry has been saved!`,
+        duration: 1500,
+        position: 'top',
       });
+      toast.present();
+    } catch (error) {
+      this.modalController.dismiss(null, 'fail');
+      const toast = await this.toastController.create({
+        message: `Error updating your entry, try again later!`,
+        duration: 1500,
+        position: 'top',
+      });
+      toast.present();
+    }
   }
 
   cancel() {

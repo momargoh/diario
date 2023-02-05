@@ -1,11 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { QuillModule } from 'ngx-quill';
-import {
-  ModalController,
-  AlertController,
-  ToastController,
-  LoadingController,
-} from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { EntryService } from '../data/services/entry.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -32,6 +27,7 @@ import { WriteEntryPage } from '../write-entry/write-entry.page';
 })
 export class ViewEntryPage extends Base implements OnInit {
   @Input() id: string;
+
   sanitizedContent: SafeHtml;
   entry$: Observable<Entry>;
   edits$: Observable<
@@ -42,13 +38,14 @@ export class ViewEntryPage extends Base implements OnInit {
       sanitizedContent: SafeHtml;
     }[]
   >;
+
+  // observable to cut off the stream of entry$ and edit$
   private deleteCalledSource = new Subject<void>();
   private deleteCalled$ = this.deleteCalledSource.asObservable();
 
   constructor(
     private entryService: EntryService,
     private modalController: ModalController,
-    private alertController: AlertController,
     private toastController: ToastController,
     private loadingService: LoadingService,
     private domSanitizer: DomSanitizer
@@ -56,80 +53,81 @@ export class ViewEntryPage extends Base implements OnInit {
     super();
   }
 
-  ngOnInit() {
-    this.loadingService.create('Loading entry...').subscribe({
-      next: () => {
-        this.entry$ = this.entryService.getEntry(this.id).pipe(
-          tap((entry) => {
-            // sanitize the Entry content HTML
-            this.sanitizedContent = this.domSanitizer.bypassSecurityTrustHtml(
-              entry.content
-            );
-          }),
-          takeUntil(this.deleteCalled$) // unsubscribes if delete is called
+  async ngOnInit() {
+    await this.loadingService.create('Loading entry...');
+
+    this.entry$ = this.entryService.getEntry(this.id).pipe(
+      tap((entry) => {
+        // sanitize the Entry content HTML
+        this.sanitizedContent = this.domSanitizer.bypassSecurityTrustHtml(
+          entry.content
         );
-        this.edits$ = this.entryService.listEdits(this.id).pipe(
-          map((edits) => {
-            return (
-              edits
-                // order by timestamp
-                .sort((a, b) => {
-                  return b.timestamp.valueOf() - a.timestamp.valueOf();
-                })
-                // sanitize the HTML
-                .map((edit) => {
-                  return {
-                    ...edit,
-                    sanitizedContent: this.domSanitizer.bypassSecurityTrustHtml(
-                      edit.content
-                    ),
-                  };
-                })
-            );
-          }),
-          takeUntil(this.deleteCalled$)
-        );
-        // wait until entry$ and edit$ have emitted once before dismissing the loading spinner
-        this.addSubscriptions(
-          combineLatest([this.entry$, this.edits$])
-            .pipe(take(1))
-            .subscribe({
-              next: () => {
-                this.loadingService.dismiss();
-              },
+      }),
+      takeUntil(this.deleteCalled$) // unsubscribes if delete is called
+    );
+    this.edits$ = this.entryService.listEdits(this.id).pipe(
+      map((edits) => {
+        return (
+          edits
+            // order by timestamp
+            .sort((a, b) => {
+              return b.timestamp.valueOf() - a.timestamp.valueOf();
+            })
+            // sanitize the HTML
+            .map((edit) => {
+              return {
+                ...edit,
+                sanitizedContent: this.domSanitizer.bypassSecurityTrustHtml(
+                  edit.content
+                ),
+              };
             })
         );
-      },
-    });
+      }),
+      takeUntil(this.deleteCalled$)
+    );
+    // wait until entry$ and edit$ have emitted once before dismissing the loading spinner
+    combineLatest([this.entry$, this.edits$])
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.loadingService.dismiss();
+        },
+      });
   }
 
   close() {
     this.modalController.dismiss(null, 'close');
   }
 
-  update() {
-    this.modalController
-      .create({
-        component: WriteEntryPage,
-        componentProps: { mode: 'update', updateId: this.id },
-      })
-      .then((m) => m.present());
+  async update() {
+    const modal = await this.modalController.create({
+      component: WriteEntryPage,
+      componentProps: { mode: 'update', updateId: this.id },
+    });
+    modal.present();
   }
 
-  delete() {
+  async delete() {
     // unsubscribe from entry$ and edit$ to prevent errors from async subscriptions in html file
     this.deleteCalledSource.next();
-    this.entryService.deleteEntry(this.id).subscribe({
-      next: () => {
-        this.modalController.dismiss(null, 'close');
-        this.toastController
-          .create({
-            message: 'Successfully deleted Entry.',
-            duration: 1500,
-            position: 'top',
-          })
-          .then((toast) => toast.present());
-      },
-    });
+    try {
+      await this.entryService.deleteEntry(this.id);
+      this.modalController.dismiss(null, 'close');
+      const toast = await this.toastController.create({
+        message: 'Successfully deleted Entry.',
+        duration: 1500,
+        position: 'top',
+      });
+      toast.present();
+    } catch (error) {
+      this.modalController.dismiss(null, 'fail');
+      const toast = await this.toastController.create({
+        message: 'Failed to delete Entry.',
+        duration: 1500,
+        position: 'top',
+      });
+      toast.present();
+    }
   }
 }

@@ -5,7 +5,7 @@ import { Base } from 'src/app/shared/components/base.component';
 import { EntryService } from '../data/services/entry.service';
 import { Observable, map, tap } from 'rxjs';
 import { ViewEntryPage } from '../view-entry/view-entry.page';
-import { LoadingController, ModalController } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { LoadingService } from 'src/app/services/loading.service';
 
 @Component({
@@ -17,33 +17,26 @@ import { LoadingService } from 'src/app/services/loading.service';
 })
 export class ListEntriesComponent extends Base implements OnInit {
   entries$: Observable<Entry[]>;
-  loading: HTMLIonLoadingElement;
 
   constructor(
     private entryService: EntryService,
     private modalController: ModalController,
-    private loadingController: LoadingController,
     private loadingService: LoadingService
   ) {
     super();
   }
 
-  ngOnInit() {
-    this.addSubscriptions(
-      this.loadingService.create('Loading the journal...').subscribe({
-        next: () => {
-          // sorting of the entries is performed here and not in the service to permit different components to order the entries how they want
-          this.entries$ = this.entryService.listEntries().pipe(
-            map((entries) => {
-              return entries.sort((a, b) => {
-                return b.timestamp.valueOf() - a.timestamp.valueOf();
-              });
-            }),
-            tap(() => {
-              this.loadingService.dismiss();
-            })
-          );
-        },
+  async ngOnInit() {
+    await this.loadingService.create('Loading the journal...');
+    // sorting of the entries is performed here and not in the service to permit different components to order the entries how they want
+    this.entries$ = this.entryService.listEntries().pipe(
+      map((entries) => {
+        return entries.sort((a, b) => {
+          return b.timestamp.valueOf() - a.timestamp.valueOf();
+        });
+      }),
+      tap(() => {
+        this.loadingService.dismiss();
       })
     );
   }
@@ -55,7 +48,5 @@ export class ListEntriesComponent extends Base implements OnInit {
       componentProps: { id: entry.id },
     });
     modal.present();
-
-    const { data, role } = await modal.onWillDismiss();
   }
 }

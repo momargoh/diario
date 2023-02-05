@@ -13,7 +13,7 @@ I didn't get around to doing this, but I should have put icons on all the button
 
 ## BaseComponent
 
-I like to have a BaseComponent (saved in `src/app/shared/components/base.component.ts`) which has a simple `addSubscriptions` method that takes a variable list of `Subscription` and handles correctly unsubscribing from them in the `ngOnDestroy` method.
+I like to have a BaseComponent (saved in `src/app/shared/components/base.component.ts`) which has a simple `addSubscriptions` method that takes a variable list of `Subscription` and handles correctly unsubscribing from them in the `ngOnDestroy` method. I put this in initially but haven't really needed to use this in this project, as I've been able to leave the handling to the async pipe in the HTML.
 
 ## DataModels
 
