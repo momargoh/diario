@@ -16,15 +16,23 @@
 <ion-content>
   <ion-list *ngIf="entry$|async">
     <ion-item>
-      <h3>Title: {{(entry$|async)?.title}}</h3>
+      <div>
+        <p>Title</p>
+        <h3>{{(entry$|async)?.title}}</h3>
+      </div>
     </ion-item>
-    <ion-item class="quill-wrapper">
-      <div [innerHTML]="sanitizedContent"></div>
+    <ion-item>
+      <div class="entry-content-wrapper">
+        <p>Content</p>
+        <div>
+          <div [innerHTML]="sanitizedContent"></div>
+        </div>
+      </div>
     </ion-item>
 
     <ion-item>
       <ion-label>
-        <h4>Edits</h4>
+        <ion-label>Edits</ion-label>
         <ion-accordion-group>
           <ion-accordion *ngFor="let edit of (edits$|async)">
             <ion-item slot="header" color="light">
@@ -35,7 +43,7 @@
             </ion-item>
             <div
               [innerHTML]="edit.sanitizedContent"
-              class="ion-padding"
+              class="ion-padding entry-content-wrapper"
               slot="content"
             ></div>
           </ion-accordion>

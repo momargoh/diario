@@ -1,10 +1,7 @@
-import {
-  DataModelBase,
-  DataModelBaseSerialized,
-} from 'src/app/shared/models/base';
-import { DocumentData, Timestamp } from '@angular/fire/firestore';
+import { Timestamp } from '@angular/fire/firestore';
 
-export class Entry extends DataModelBase {
+export class Entry {
+  id: string;
   timestamp: Date;
   title: string;
   content: string;
@@ -15,20 +12,11 @@ export class Entry extends DataModelBase {
     title: string;
     content: string;
   }) {
-    super(params);
+    Object.assign(this, params);
   }
 
   //   SECTION serialization
-  override serialize(): EntrySerialized {
-    return {
-      id: this.id,
-      timestamp: Timestamp.fromDate(this.timestamp),
-      content: this.content,
-      title: this.title,
-    };
-  }
-
-  static override deserialize(json: EntrySerialized): Entry {
+  static deserialize(json: EntrySerialized): Entry {
     return new Entry({
       id: json.id,
       timestamp: json.timestamp.toDate(),
@@ -39,9 +27,9 @@ export class Entry extends DataModelBase {
   //   !SECTION
 }
 
-export type EntrySerialized = DocumentData &
-  DataModelBaseSerialized & {
-    timestamp: Timestamp;
-    title: string;
-    content: string;
-  };
+export type EntrySerialized = {
+  id: string;
+  timestamp: Timestamp;
+  title: string;
+  content: string;
+};

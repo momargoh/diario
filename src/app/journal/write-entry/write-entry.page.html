@@ -4,7 +4,10 @@
     <ion-button (click)="cancel()" slot="start" color="secondary"
       >Cancel</ion-button
     >
-    <ion-button [disabled]="!entryForm.valid" (click)="save()" slot="end"
+    <ion-button
+      [disabled]="!entryForm.valid || entryForm.pristine"
+      (click)="save()"
+      slot="end"
       >Save</ion-button
     >
   </ion-toolbar>

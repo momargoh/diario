@@ -21,6 +21,7 @@ import {
 } from 'rxjs';
 import { LoadingService } from 'src/app/services/loading.service';
 import { Base } from 'src/app/shared/components/base.component';
+import { WriteEntryPage } from '../write-entry/write-entry.page';
 
 @Component({
   standalone: true,
@@ -69,14 +70,22 @@ export class ViewEntryPage extends Base implements OnInit {
         );
         this.edits$ = this.entryService.listEdits(this.id).pipe(
           map((edits) => {
-            return edits.map((edit) => {
-              return {
-                ...edit,
-                sanitizedContent: this.domSanitizer.bypassSecurityTrustHtml(
-                  edit.content
-                ),
-              };
-            });
+            return (
+              edits
+                // order by timestamp
+                .sort((a, b) => {
+                  return b.timestamp.valueOf() - a.timestamp.valueOf();
+                })
+                // sanitize the HTML
+                .map((edit) => {
+                  return {
+                    ...edit,
+                    sanitizedContent: this.domSanitizer.bypassSecurityTrustHtml(
+                      edit.content
+                    ),
+                  };
+                })
+            );
           }),
           takeUntil(this.deleteCalled$)
         );
@@ -98,7 +107,14 @@ export class ViewEntryPage extends Base implements OnInit {
     this.modalController.dismiss(null, 'close');
   }
 
-  update() {}
+  update() {
+    this.modalController
+      .create({
+        component: WriteEntryPage,
+        componentProps: { mode: 'update', updateId: this.id },
+      })
+      .then((m) => m.present());
+  }
 
   delete() {
     // unsubscribe from entry$ and edit$ to prevent errors from async subscriptions in html file
