@@ -8,7 +8,7 @@ export class Entry extends DataModelBase {
   timestamp: Date;
   title: string;
   content: string;
-  editIds?: string[];
+  editIds: string[];
 
   constructor(params: {
     id: string | null;
@@ -26,6 +26,12 @@ export class Entry extends DataModelBase {
 
   getEditCount(): number {
     return this.editIds?.length ?? 0;
+  }
+
+  getEditCountString(): string {
+    return this.hasEdits()
+      ? this.getEditCount() + ' edit' + (this.getEditCount() > 1 ? 's' : '')
+      : 'No edits';
   }
 
   //   SECTION serialization

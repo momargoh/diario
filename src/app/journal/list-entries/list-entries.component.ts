@@ -4,6 +4,8 @@ import { Entry } from '../data/models/entry';
 import { Base } from 'src/app/shared/components/base.component';
 import { EntryService } from '../data/services/entry.service';
 import { Observable, map } from 'rxjs';
+import { ViewEntryPage } from '../view-entry/view-entry.page';
+import { ModalController } from '@ionic/angular';
 
 @Component({
   standalone: true,
@@ -15,7 +17,10 @@ import { Observable, map } from 'rxjs';
 export class ListEntriesComponent extends Base implements OnInit {
   entries$: Observable<Entry[]>;
 
-  constructor(private entryService: EntryService) {
+  constructor(
+    private entryService: EntryService,
+    private modalController: ModalController
+  ) {
     super();
   }
 
@@ -30,7 +35,14 @@ export class ListEntriesComponent extends Base implements OnInit {
     );
   }
 
-  viewEntry(entry: Entry) {
-    console.log('view entry', entry);
+  async viewEntry(entry: Entry) {
+    const modal = await this.modalController.create({
+      component: ViewEntryPage,
+      backdropDismiss: false,
+      componentProps: { id: entry.id },
+    });
+    modal.present();
+
+    const { data, role } = await modal.onWillDismiss();
   }
 }

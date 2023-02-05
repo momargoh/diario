@@ -7,10 +7,14 @@ import {
   addDoc,
   collection,
   collectionData,
+  doc,
+  docData,
+  getDoc,
   orderBy,
 } from '@angular/fire/firestore';
 import { Observable, map } from 'rxjs';
 import { Entry, EntrySerialized } from '../models/entry';
+import { Edit, EditSerialized } from '../models/edit';
 
 export type CreateEntryParams = { title: string; content: string };
 
@@ -35,5 +39,19 @@ export class EntryService {
     const payload = { ...params, timestamp: Timestamp.now(), edits: [] };
     const entriesRef = collection(this.firestore, 'entries');
     return addDoc(entriesRef, payload);
+  }
+
+  getEntry(id: string): Observable<Entry> {
+    const entryRef = doc(this.firestore, `entries/${id}`);
+    return docData(entryRef).pipe(
+      map((json) => Entry.deserialize(json as EntrySerialized))
+    );
+  }
+
+  getEdit(id: string): Observable<Edit> {
+    const editRef = doc(this.firestore, `edits/${id}`);
+    return docData(editRef).pipe(
+      map((json) => Edit.deserialize(json as EditSerialized))
+    );
   }
 }

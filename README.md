@@ -7,6 +7,10 @@ This is a 10-hour web competency project. I'll use this README.md to explain mys
 
 # Notes
 
+## Icons
+
+I didn't get around to doing this, but I should have put icons on all the buttons and then use a media/container query to only show the icon on small screens, but show the text and icon on larger screens.
+
 ## BaseComponent
 
 I like to have a BaseComponent (saved in `src/app/shared/components/base.component.ts`) which has a simple `addSubscriptions` method that takes a variable list of `Subscription` and handles correctly unsubscribing from them in the `ngOnDestroy` method.
