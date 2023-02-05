@@ -1,0 +1,54 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>View Entry</ion-title>
+    <ion-button (click)="close()" slot="start" color="secondary"
+      ><ion-icon name="close-outline"></ion-icon>Close</ion-button
+    >
+    <ion-button (click)="delete()" slot="end" color="danger"
+      ><ion-icon slot="start" name="trash-outline"></ion-icon>Delete</ion-button
+    >
+    <ion-button (click)="update()" slot="end"
+      ><ion-icon name="create-outline"></ion-icon>Edit</ion-button
+    >
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list *ngIf="entry$|async">
+    <ion-item>
+      <div>
+        <p>Title</p>
+        <h3>{{(entry$|async)?.title}}</h3>
+      </div>
+    </ion-item>
+    <ion-item>
+      <div class="entry-content-wrapper">
+        <p>Content</p>
+        <div>
+          <div [innerHTML]="sanitizedContent"></div>
+        </div>
+      </div>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>
+        <ion-label>Edits</ion-label>
+        <ion-accordion-group>
+          <ion-accordion *ngFor="let edit of (edits$|async)">
+            <ion-item slot="header" color="light">
+              <ion-label
+                >Title: {{edit.title}} ({{(edit.timestamp |
+                date:"short")}})</ion-label
+              >
+            </ion-item>
+            <div
+              [innerHTML]="edit.sanitizedContent"
+              class="ion-padding entry-content-wrapper"
+              slot="content"
+            ></div>
+          </ion-accordion>
+        </ion-accordion-group>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>
