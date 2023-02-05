@@ -3,9 +3,10 @@ import { SharedModule } from 'src/app/shared/shared.module';
 import { Entry } from '../data/models/entry';
 import { Base } from 'src/app/shared/components/base.component';
 import { EntryService } from '../data/services/entry.service';
-import { Observable, map } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 import { ViewEntryPage } from '../view-entry/view-entry.page';
-import { ModalController } from '@ionic/angular';
+import { LoadingController, ModalController } from '@ionic/angular';
+import { LoadingService } from 'src/app/services/loading.service';
 
 @Component({
   standalone: true,
@@ -16,21 +17,33 @@ import { ModalController } from '@ionic/angular';
 })
 export class ListEntriesComponent extends Base implements OnInit {
   entries$: Observable<Entry[]>;
+  loading: HTMLIonLoadingElement;
 
   constructor(
     private entryService: EntryService,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private loadingController: LoadingController,
+    private loadingService: LoadingService
   ) {
     super();
   }
 
   ngOnInit() {
-    // sorting of the entries is performed here and not in the service to permit different components to order the entries how they want
-    this.entries$ = this.entryService.listEntries().pipe(
-      map((entries) => {
-        return entries.sort((a, b) => {
-          return b.timestamp.valueOf() - a.timestamp.valueOf();
-        });
+    this.addSubscriptions(
+      this.loadingService.create('Loading the journal...').subscribe({
+        next: () => {
+          // sorting of the entries is performed here and not in the service to permit different components to order the entries how they want
+          this.entries$ = this.entryService.listEntries().pipe(
+            map((entries) => {
+              return entries.sort((a, b) => {
+                return b.timestamp.valueOf() - a.timestamp.valueOf();
+              });
+            }),
+            tap(() => {
+              this.loadingService.dismiss();
+            })
+          );
+        },
       })
     );
   }
