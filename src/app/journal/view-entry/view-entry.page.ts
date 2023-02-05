@@ -10,8 +10,15 @@ import { SharedModule } from 'src/app/shared/shared.module';
 import { EntryService } from '../data/services/entry.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Entry } from '../data/models/entry';
-import { Observable, combineLatest, map, take, tap } from 'rxjs';
-import { Edit } from '../data/models/edit';
+import {
+  Observable,
+  Subject,
+  combineLatest,
+  map,
+  take,
+  takeUntil,
+  tap,
+} from 'rxjs';
 import { LoadingService } from 'src/app/services/loading.service';
 import { Base } from 'src/app/shared/components/base.component';
 
@@ -24,23 +31,24 @@ import { Base } from 'src/app/shared/components/base.component';
 })
 export class ViewEntryPage extends Base implements OnInit {
   @Input() id: string;
-  loading: HTMLIonLoadingElement;
   sanitizedContent: SafeHtml;
   entry$: Observable<Entry>;
-  entry: Entry;
-  edits: Observable<{
-    id: string | null;
-    timestamp: Date;
-    title: string;
-    sanitizedContent: SafeHtml;
-  }>[];
+  edits$: Observable<
+    {
+      id: string | null;
+      timestamp: Date;
+      title: string;
+      sanitizedContent: SafeHtml;
+    }[]
+  >;
+  private deleteCalledSource = new Subject<void>();
+  private deleteCalled$ = this.deleteCalledSource.asObservable();
 
   constructor(
     private entryService: EntryService,
     private modalController: ModalController,
     private alertController: AlertController,
     private toastController: ToastController,
-    private loadingController: LoadingController,
     private loadingService: LoadingService,
     private domSanitizer: DomSanitizer
   ) {
@@ -48,45 +56,42 @@ export class ViewEntryPage extends Base implements OnInit {
   }
 
   ngOnInit() {
-    //chuck a loading spinner on it all until everything is ready
-    this.addSubscriptions(
-      this.loadingService.create().subscribe({
-        next: () => {
-          this.entry$ = this.entryService.getEntry(this.id).pipe(
-            tap((entry) => {
-              this.entry = entry;
-              // sanitize the content HTML
-              this.sanitizedContent = this.domSanitizer.bypassSecurityTrustHtml(
-                entry.content
-              );
-              // fetch each of the edits and sanitize their content
-              this.edits = entry.editIds.map((id) => {
-                return this.entryService.getEdit(id).pipe(
-                  map((edit) => {
-                    return {
-                      ...edit,
-                      sanitizedContent:
-                        this.domSanitizer.bypassSecurityTrustHtml(edit.content),
-                    };
-                  })
-                );
-              });
-
-              // if there are edits, wait until they've all been fetched before dismissing the loading spinner, otherwise dismiss immediately
-              if (this.edits.length > 0) {
-                combineLatest(this.edits)
-                  .pipe(take(1))
-                  .subscribe((_) => {
-                    this.loadingService.dismiss();
-                  });
-              } else {
+    this.loadingService.create('Loading entry...').subscribe({
+      next: () => {
+        this.entry$ = this.entryService.getEntry(this.id).pipe(
+          tap((entry) => {
+            // sanitize the Entry content HTML
+            this.sanitizedContent = this.domSanitizer.bypassSecurityTrustHtml(
+              entry.content
+            );
+          }),
+          takeUntil(this.deleteCalled$) // unsubscribes if delete is called
+        );
+        this.edits$ = this.entryService.listEdits(this.id).pipe(
+          map((edits) => {
+            return edits.map((edit) => {
+              return {
+                ...edit,
+                sanitizedContent: this.domSanitizer.bypassSecurityTrustHtml(
+                  edit.content
+                ),
+              };
+            });
+          }),
+          takeUntil(this.deleteCalled$)
+        );
+        // wait until entry$ and edit$ have emitted once before dismissing the loading spinner
+        this.addSubscriptions(
+          combineLatest([this.entry$, this.edits$])
+            .pipe(take(1))
+            .subscribe({
+              next: () => {
                 this.loadingService.dismiss();
-              }
+              },
             })
-          );
-        },
-      })
-    );
+        );
+      },
+    });
   }
 
   close() {
@@ -96,8 +101,19 @@ export class ViewEntryPage extends Base implements OnInit {
   update() {}
 
   delete() {
-    this.entryService.deleteEntry(this.entry).then(() => {
-      this.modalController.dismiss(null, 'close');
+    // unsubscribe from entry$ and edit$ to prevent errors from async subscriptions in html file
+    this.deleteCalledSource.next();
+    this.entryService.deleteEntry(this.id).subscribe({
+      next: () => {
+        this.modalController.dismiss(null, 'close');
+        this.toastController
+          .create({
+            message: 'Successfully deleted Entry.',
+            duration: 1500,
+            position: 'top',
+          })
+          .then((toast) => toast.present());
+      },
     });
   }
 }

@@ -4,7 +4,7 @@
     <ion-button (click)="close()" slot="start" color="secondary"
       ><ion-icon name="close-outline"></ion-icon>Close</ion-button
     >
-    <ion-button (click)="delete()" slot="end"
+    <ion-button (click)="delete()" slot="end" color="danger"
       ><ion-icon slot="start" name="trash-outline"></ion-icon>Delete</ion-button
     >
     <ion-button (click)="update()" slot="end"
@@ -24,17 +24,17 @@
 
     <ion-item>
       <ion-label>
-        <h4>{{(entry$|async)?.getEditCountString()}}</h4>
+        <h4>Edits</h4>
         <ion-accordion-group>
-          <ion-accordion *ngFor="let edit$ of edits">
+          <ion-accordion *ngFor="let edit of (edits$|async)">
             <ion-item slot="header" color="light">
               <ion-label
-                >Title: {{(edit$|async)?.title}} ({{((edit$|async)?.timestamp |
+                >Title: {{edit.title}} ({{(edit.timestamp |
                 date:"short")}})</ion-label
               >
             </ion-item>
             <div
-              [innerHTML]="(edit$|async)?.sanitizedContent"
+              [innerHTML]="edit.sanitizedContent"
               class="ion-padding"
               slot="content"
             ></div>

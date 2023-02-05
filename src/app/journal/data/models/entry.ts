@@ -8,30 +8,14 @@ export class Entry extends DataModelBase {
   timestamp: Date;
   title: string;
   content: string;
-  editIds: string[];
 
   constructor(params: {
-    id: string | null;
+    id: string;
     timestamp: Date;
     title: string;
     content: string;
-    editIds?: string[];
   }) {
     super(params);
-  }
-
-  hasEdits(): boolean {
-    return this.getEditCount() > 0;
-  }
-
-  getEditCount(): number {
-    return this.editIds?.length ?? 0;
-  }
-
-  getEditCountString(): string {
-    return this.hasEdits()
-      ? this.getEditCount() + ' edit' + (this.getEditCount() > 1 ? 's' : '')
-      : 'No edits';
   }
 
   //   SECTION serialization
@@ -50,7 +34,6 @@ export class Entry extends DataModelBase {
       timestamp: json.timestamp.toDate(),
       title: json.title,
       content: json.content,
-      editIds: json.edits?.map((edit) => edit.id),
     });
   }
   //   !SECTION
@@ -61,5 +44,4 @@ export type EntrySerialized = DocumentData &
     timestamp: Timestamp;
     title: string;
     content: string;
-    edits?: { id: string }[];
   };

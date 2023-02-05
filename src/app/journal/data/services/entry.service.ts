@@ -13,10 +13,8 @@ import {
   getDoc,
   orderBy,
 } from '@angular/fire/firestore';
-import { Observable, map } from 'rxjs';
+import { Observable, combineLatest, from, map, of, switchMap } from 'rxjs';
 import { Entry, EntrySerialized } from '../models/entry';
-import { Edit, EditSerialized } from '../models/edit';
-
 export type CreateEntryParams = { title: string; content: string };
 
 @Injectable({
@@ -28,6 +26,15 @@ export class EntryService {
   listEntries(): Observable<Entry[]> {
     const entriesRef = collection(this.firestore, 'entries');
     return collectionData(entriesRef, { idField: 'id' }).pipe(
+      map((res) => {
+        return res.map((r) => Entry.deserialize(r as EntrySerialized));
+      })
+    );
+  }
+
+  listEdits(id: string): Observable<Entry[]> {
+    const editsRef = collection(this.firestore, `entries/${id}/edits`);
+    return collectionData(editsRef, { idField: 'id' }).pipe(
       map((res) => {
         return res.map((r) => Entry.deserialize(r as EntrySerialized));
       })
@@ -49,21 +56,31 @@ export class EntryService {
     );
   }
 
-  deleteEntry(entry: Entry) {
-    const entryRef = doc(this.firestore, `entries/${entry.id}`);
-    return Promise.all([
-      ...entry.editIds?.map((id) =>
-        deleteDoc(doc(this.firestore, `edits/${id}`))
-      ),
-    ]).then(() => {
-      return deleteDoc(entryRef);
-    });
-  }
-
-  getEdit(id: string): Observable<Edit> {
-    const editRef = doc(this.firestore, `edits/${id}`);
-    return docData(editRef).pipe(
-      map((json) => Edit.deserialize(json as EditSerialized))
+  deleteEntry(id: string) {
+    // delete all edits first, wait until this is done and then delete the original Entry document
+    const editsRef = collection(this.firestore, `entries/${id}/edits`);
+    return collectionData(editsRef, { idField: 'id' }).pipe(
+      switchMap((res) => {
+        if (res.length === 0) {
+          return of(true);
+        }
+        return combineLatest(
+          res.map((r) => {
+            return from(
+              deleteDoc(
+                doc(
+                  this.firestore,
+                  `entries/${id}/edits/${(r as unknown as { id: string }).id}`
+                )
+              )
+            );
+          })
+        );
+      }),
+      map((_) => {
+        // now delete original Entry
+        return from(deleteDoc(doc(this.firestore, `entries/${id}`)));
+      })
     );
   }
 }

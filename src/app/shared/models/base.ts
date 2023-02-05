@@ -1,5 +1,5 @@
 export abstract class DataModelBase {
-  id: string | null = null;
+  id: string;
 
   constructor(params?: { [key: string]: any }) {
     if (params) {
@@ -17,5 +17,5 @@ export abstract class DataModelBase {
 }
 
 export type DataModelBaseSerialized = {
-  id: string | null;
+  id: string;
 };
