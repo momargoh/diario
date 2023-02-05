@@ -20,3 +20,24 @@ I like to keep data model class definitions in a separate file to the service, I
 - checking validity of the incoming data (particularly with document databases like Firestore, there's the risk of older documents missing newer required fields).
 
 These methods could equally be included in the service file as opposed to in the class definition file.
+
+## AngularFire syntax
+
+It seems AngularFire has just been updated but its docs haven't. For example [it suggests](https://github.com/angular/angularfire#example-use) to fetch a collection using the syntax ...
+
+```
+constructor(firestore: Firestore) {
+    const collection = collection(firestore, 'items');
+    this.item$ = collectionData(collection);
+};
+```
+
+but then its section on querying uses the older syntax like ...
+
+```
+constructor(firestore: AngularFirestore) {
+    this.items = firestore.collection('items').valueChanges();
+}
+```
+
+so it's been a little confusing!

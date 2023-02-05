@@ -28,3 +28,9 @@
 @import "styles/abstracts/variables";
 @import "styles/abstracts/mixins";
 @import "styles/modules/typography";
+@import "styles/modules/buttons";
+
+// QuillJS
+@import "~quill/dist/quill.bubble.css";
+// or
+@import "~quill/dist/quill.snow.css";

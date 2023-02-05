@@ -1,0 +1,37 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{mode | titlecase}} Entry</ion-title>
+    <ion-button (click)="cancel()" slot="start" color="secondary"
+      >Cancel</ion-button
+    >
+    <ion-button [disabled]="!entryForm.valid" (click)="save()" slot="end"
+      >Save</ion-button
+    >
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <form [formGroup]="entryForm" action="submit" (ngSubmit)="save()">
+    <ion-list>
+      <ion-item>
+        <ion-label position="stacked">Title</ion-label>
+        <ion-input
+          formControlName="title"
+          type="text"
+          placeholder="What would you like to call this entry?"
+        ></ion-input>
+      </ion-item>
+      <ion-item class="quill-wrapper">
+        <quill-editor
+          formControlName="content"
+          [sanitize]="true"
+          [modules]="quillModules"
+          [theme]="'snow'"
+          [placeholder]="'What would you like to write about?'"
+          [required]="true"
+          [styles]="{'min-height': '250px'}"
+        ></quill-editor>
+      </ion-item>
+    </ion-list>
+  </form>
+</ion-content>
