@@ -6,8 +6,8 @@ import { JournalPage } from './journal.page';
 const routes: Routes = [
   {
     path: '',
-    component: JournalPage
-  }
+    component: JournalPage,
+  },
 ];
 
 @NgModule({

@@ -1,7 +1,20 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title class="cursive">Diar.io</ion-title>
+    <ion-title class="cursive" color="primary">Diar.io</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content><h1>Journal Page works!!</h1> </ion-content>
+<ion-content>
+  <section class="title">
+    <ion-text color="primary">
+      <h1 class="cursive">Welcome to Diar.io!</h1>
+    </ion-text>
+    <p>Check out what people have been writing about below.</p>
+  </section>
+  <app-list-entries></app-list-entries>
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="createEntry()">
+      <ion-icon name="create-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

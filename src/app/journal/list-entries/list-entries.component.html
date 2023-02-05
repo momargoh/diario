@@ -1,0 +1,25 @@
+<div *ngIf="!(entries$ | async); else listTemplate">
+  <p class="cursive">No entries yet!</p>
+</div>
+<ng-template #listTemplate>
+  <ion-list>
+    <ion-item
+      *ngFor="let entry of entries$ | async"
+      button
+      (click)="viewEntry(entry)"
+    >
+      <ion-label
+        ><h3>{{ entry.title }}</h3>
+        <p>
+          {{ entry.timestamp | date : "short" }} ({{
+            entry.hasEdits()
+              ? entry.getEditCount() +
+                " edit" +
+                (entry.getEditCount() > 1 ? "s" : "")
+              : "No edits"
+          }})
+        </p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ng-template>

@@ -1,10 +1,10 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 
 import { IonicModule } from '@ionic/angular';
 
-const sharedModules: any[] = [CommonModule, FormsModule, IonicModule];
+const sharedModules: any[] = [CommonModule, ReactiveFormsModule, IonicModule];
 
 const declarations: any[] = [];
 
