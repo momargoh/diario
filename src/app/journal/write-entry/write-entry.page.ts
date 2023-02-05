@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { QuillModule } from 'ngx-quill';
 import {
@@ -12,6 +12,9 @@ import {
   CreateEntryParams,
   EntryService,
 } from '../data/services/entry.service';
+import { take } from 'rxjs';
+import { LoadingService } from 'src/app/services/loading.service';
+import { Base } from 'src/app/shared/components/base.component';
 @Component({
   standalone: true,
   imports: [SharedModule, QuillModule],
@@ -19,8 +22,9 @@ import {
   templateUrl: './write-entry.page.html',
   styleUrls: ['./write-entry.page.scss'],
 })
-export class WriteEntryPage implements OnInit {
-  mode: 'create' | 'update' = 'create';
+export class WriteEntryPage extends Base implements OnInit {
+  @Input() mode: 'create' | 'update' = 'create';
+  @Input() updateId: string; // if mode === "create", an id must be provided to populate the form
 
   entryForm = new FormGroup({
     title: new FormControl<string | null>(null, [Validators.required]),
@@ -59,36 +63,93 @@ export class WriteEntryPage implements OnInit {
     private alertController: AlertController,
     private toastController: ToastController,
     private doNotShowAgainService: DoNotShowAgainService,
-    private entryService: EntryService
-  ) {}
+    private entryService: EntryService,
+    private loadingService: LoadingService
+  ) {
+    super();
+  }
 
-  ngOnInit() {}
+  ngOnInit() {
+    if (this.mode === 'update') {
+      // wrap in a loading spinner
+      this.addSubscriptions(
+        this.loadingService.create('Fetching entry').subscribe({
+          next: () => {
+            this.entryService
+              .getEntry(this.updateId)
+              .pipe(take(1))
+              .subscribe({
+                next: (entry) => {
+                  this.entryForm.patchValue(entry);
+                  this.loadingService.dismiss();
+                },
+              });
+          },
+        })
+      );
+    }
+  }
 
   async save() {
     if (this.entryForm.valid) {
       this.entryForm.disable(); // prevent multiple submissions
-      try {
-        await this.entryService.createEntry(
-          this.entryForm.value as CreateEntryParams
-        );
-
-        this.modalController.dismiss(null, 'save');
-        const toast = await this.toastController.create({
-          message: `Your entry has been saved!`,
-          duration: 1500,
-          position: 'top',
-        });
-        toast.present();
-      } catch (error) {
-        this.modalController.dismiss(null, 'fail');
-        const toast = await this.toastController.create({
-          message: `Error creating your entry, try again later!`,
-          duration: 1500,
-          position: 'top',
-        });
-        toast.present();
+      if (this.mode === 'create') {
+        this.create();
+      } else {
+        this.update();
       }
     }
+  }
+
+  private async create() {
+    try {
+      await this.entryService.createEntry(
+        this.entryForm.value as CreateEntryParams
+      );
+
+      this.modalController.dismiss(null, 'save');
+      const toast = await this.toastController.create({
+        message: `Your entry has been saved!`,
+        duration: 1500,
+        position: 'top',
+      });
+      toast.present();
+    } catch (error) {
+      this.modalController.dismiss(null, 'fail');
+      const toast = await this.toastController.create({
+        message: `Error creating your entry, try again later!`,
+        duration: 1500,
+        position: 'top',
+      });
+      toast.present();
+    }
+  }
+
+  private update() {
+    this.entryService
+      .updateEntry(this.updateId, this.entryForm.value as CreateEntryParams)
+      .subscribe({
+        next: () => {
+          this.modalController.dismiss(null, 'save');
+          this.toastController
+            .create({
+              message: `Your entry has been saved!`,
+              duration: 1500,
+              position: 'top',
+            })
+            .then((toast) => toast.present());
+        },
+        error: (e) => {
+          this.modalController.dismiss(null, 'fail');
+          this.toastController
+            .create({
+              message: `Error updating your entry, try again later!`,
+              duration: 1500,
+              position: 'top',
+            })
+            .then((toast) => toast.present());
+        },
+      });
   }
 
   cancel() {
