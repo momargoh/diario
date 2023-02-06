@@ -1,14 +1,8 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>{{mode | titlecase}} Entry</ion-title>
-    <ion-button (click)="cancel()" slot="start" color="secondary"
-      >Cancel</ion-button
-    >
-    <ion-button
-      [disabled]="!entryForm.valid || entryForm.pristine"
-      (click)="save()"
-      slot="end"
-      >Save</ion-button
+    <ion-title
+      ><ion-icon name="create-outline"></ion-icon>&nbsp;{{mode | titlecase}}
+      Entry</ion-title
     >
   </ion-toolbar>
 </ion-header>
@@ -38,3 +32,16 @@
     </ion-list>
   </form>
 </ion-content>
+
+<ion-footer>
+  <ion-button
+    [disabled]="!entryForm.valid || entryForm.pristine"
+    (click)="save()"
+    expand="block"
+    ><ion-icon name="save-outline"></ion-icon>&nbsp;Save</ion-button
+  >
+  <hr />
+  <ion-button (click)="cancel()" color="secondary" expand="block"
+    ><ion-icon name="close-outline"></ion-icon>Cancel</ion-button
+  >
+</ion-footer>

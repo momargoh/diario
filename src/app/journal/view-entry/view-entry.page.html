@@ -1,14 +1,8 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>View Entry</ion-title>
-    <ion-button (click)="close()" slot="start" color="secondary"
-      ><ion-icon name="close-outline"></ion-icon>Close</ion-button
-    >
-    <ion-button (click)="delete()" slot="end" color="danger"
-      ><ion-icon slot="start" name="trash-outline"></ion-icon>Delete</ion-button
-    >
-    <ion-button (click)="update()" slot="end"
-      ><ion-icon name="create-outline"></ion-icon>Edit</ion-button
+    <ion-title
+      ><ion-icon name="document-text-outline"></ion-icon>&nbsp;View
+      Entry</ion-title
     >
   </ion-toolbar>
 </ion-header>
@@ -52,3 +46,16 @@
     </ion-item>
   </ion-list>
 </ion-content>
+
+<ion-footer>
+  <ion-button (click)="update()" expand="block"
+    ><ion-icon name="create-outline"></ion-icon>Edit</ion-button
+  >
+  <ion-button (click)="delete()" expand="block" color="danger"
+    ><ion-icon slot="start" name="trash-outline"></ion-icon>Delete</ion-button
+  >
+  <hr />
+  <ion-button (click)="close()" expand="block" color="secondary"
+    ><ion-icon name="close-outline"></ion-icon>Close</ion-button
+  >
+</ion-footer>
