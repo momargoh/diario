@@ -1,10 +1,26 @@
+<ion-menu contentId="main-content">
+  <ion-header>
+    <ion-toolbar color="tertiary">
+      <ion-title>Menu</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content>
+    <ion-button (click)="logout()" expand="block" color="light"
+      ><ion-icon name="log-out-outline"></ion-icon>Logout</ion-button
+    >
+  </ion-content>
+</ion-menu>
+
 <ion-header>
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
     <ion-title class="cursive" color="primary">Diar.io</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content id="main-content">
   <section class="title">
     <ion-text color="primary">
       <h1 class="cursive">Welcome to Diar.io!</h1>

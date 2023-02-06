@@ -1,0 +1,39 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Authenticate yourself!</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <form [formGroup]="form" action="submit">
+    <ion-list>
+      <ion-item>
+        <ion-label>Email:</ion-label>
+        <ion-input
+          formControlName="email"
+          type="email"
+          placeholder="email@domain.com"
+        ></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label>Password:</ion-label>
+        <ion-input formControlName="password" type="password"></ion-input>
+      </ion-item>
+    </ion-list>
+    <ion-button
+      expand="block"
+      [disabled]="form.invalid"
+      (click)="login()"
+      color="primary"
+      >Log In</ion-button
+    >
+    <hr />
+    <ion-button
+      expand="block"
+      [disabled]="form.invalid"
+      (click)="register()"
+      color="secondary"
+      >Register</ion-button
+    >
+  </form>
+</ion-content>
